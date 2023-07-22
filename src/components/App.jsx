@@ -1,72 +1,82 @@
-import { Component } from 'react';
-
+import { useState } from 'react';
 //Імпорт компонентів
 import { Statistics } from './Statistics/Statistics';
 import { FeedbackOptions } from './FeedbackOptions/FeedbackOptions';
 import { Section } from './Section/Section';
 import { Notification } from './Notification/Notification';
+//Імпорт відповідних іконок
 import { FcLike } from 'react-icons/fc';
 import { FcInfo } from 'react-icons/fc';
 import { FcDislike } from 'react-icons/fc';
-
+//Імпорт стилів
 import css from './App.module.css';
 
-export class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
-  };
+export const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
 
-  iconsButton = {
+  const iconsButton = {
     good: <FcLike size="30px" className={css.icon_good} />,
     neutral: <FcInfo size="30px" />,
     bad: <FcDislike size="30px" className={css.icon_bad} />,
   };
 
-  onBtnClicked = option =>
-    this.setState(prevState => ({ [option]: prevState[option] + 1 }));
+  //Функція-обробник кліка на відповідну кнопку
+  const onBtnClicked = option => {
+    switch (option) {
+      case 'good':
+        setGood(prev => prev + 1);
+        break;
+      case 'neutral':
+        setNeutral(prev => prev + 1);
+        break;
+      case 'bad':
+        setBad(prev => prev + 1);
+        break;
+      default:
+        return;
+    }
+  };
 
-  countTotalFeedback = () => {
-    const { good, neutral, bad } = this.state;
+  //Функція підрахунку суми всіх фідбеків
+  const countTotalFeedback = () => {
     return good + neutral + bad;
   };
 
-  countPositiveFeedbackPercentage = () => {
-    const { good } = this.state;
-    const total = this.countTotalFeedback();
+  //Функція підрахунку процентного співвідношення позитивних фідбеків
+  const countPositiveFeedbackPercentage = () => {
+    const total = countTotalFeedback();
     const positivePercentage = Math.round((good / total) * 100);
     return total ? positivePercentage : 0;
   };
 
-  render() {
-    const { good, neutral, bad } = this.state;
-    const total = this.countTotalFeedback();
-    const positivePercentage = this.countPositiveFeedbackPercentage();
-    const options = Object.keys(this.state);
-    return (
-      <div className={css.wrapper}>
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            options={options}
-            onLeaveFeedback={this.onBtnClicked}
-            iconsButton={this.iconsButton}
+  const total = countTotalFeedback();
+  const positivePercentage = countPositiveFeedbackPercentage();
+  const options = ['good', 'neutral', 'bad'];
+
+  return (
+    <div className={css.wrapper}>
+      <Section title="Please leave feedback">
+        <FeedbackOptions
+          options={options}
+          onLeaveFeedback={onBtnClicked}
+          iconsButton={iconsButton}
+        />
+      </Section>
+      <Section title="Statistics">
+        {total ? (
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={total}
+            positivePercentage={positivePercentage}
           />
-        </Section>
-        <Section title="Statistics">
-          {total ? (
-            <Statistics
-              good={good}
-              neutral={neutral}
-              bad={bad}
-              total={total}
-              positivePercentage={positivePercentage}
-            />
-          ) : (
-            <Notification message="There is no feedback" />
-          )}
-        </Section>
-      </div>
-    );
-  }
-}
+        ) : (
+          <Notification message="There is no feedback" />
+        )}
+      </Section>
+    </div>
+  );
+};
